@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stats">
+    <div class="stat-card"><span class="stat-value">{{ stats.total }}</span><span class="stat-label">Total</span></div>
+    <div class="stat-card ok"><span class="stat-value">{{ stats.approved }}</span><span class="stat-label">Auto-aprobados</span></div>
+    <div class="stat-card warn"><span class="stat-value">{{ stats.flagged }}</span><span class="stat-label">Marcados para revision</span></div>
+    <div class="stat-card danger"><span class="stat-value">{{ stats.rolled_back }}</span><span class="stat-label">Revertidos</span></div>
+</section>
+<p class="muted">Umbral de auto-aprobacion: {{ threshold }}</p>
+
+{% if not docs %}
+<div class="empty">
+    <p>Todavia no hay documentos procesados.</p>
+    <a href="/upload" class="btn btn-primary">Subir el primero</a>
+</div>
+{% else %}
+<table class="doc-table">
+    <thead>
+        <tr>
+            <th>Archivo</th>
+            <th>Proveedor</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Confianza</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for doc in docs %}
+        <tr onclick="window.location='/documents/{{ doc.id }}'" class="row-link">
+            <td>{{ doc.filename }}</td>
+            <td>{{ doc.vendor or '—' }}</td>
+            <td>{{ doc.doc_date or '—' }}</td>
+            <td>{{ '%.2f'|format(doc.total) if doc.total is not none else '—' }}</td>
+            <td>{{ '%.0f'|format(doc.confidence * 100) + '%' if doc.confidence is not none else '—' }}</td>
+            <td><span class="badge badge-{{ doc.status }}">{{ doc.status }}</span></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

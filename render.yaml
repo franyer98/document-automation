@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: document-automation
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: AUTO_APPROVE_THRESHOLD
+        value: "0.85"
+# El plan "free" no soporta discos persistentes: la base SQLite se reinicia
+# en cada redeploy. Si quieres persistencia real, sube a plan "starter" y
+# descomenta este bloque:
+#    disk:
+#      name: document-automation-data
+#      mountPath: /app/data
+#      sizeGB: 1

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="/" class="back-link">&larr; Volver</a>
+<h1>{{ doc.filename }}</h1>
+<span class="badge badge-{{ doc.status }}">{{ doc.status }}</span>
+
+<section class="detail-grid">
+    <div>
+        <h3>Datos extraidos</h3>
+        <table class="kv-table">
+            <tr><th>Proveedor</th><td>{{ doc.vendor or '—' }}</td></tr>
+            <tr><th>Fecha</th><td>{{ doc.doc_date or '—' }}</td></tr>
+            <tr><th>Subtotal</th><td>{{ doc.subtotal if doc.subtotal is not none else '—' }}</td></tr>
+            <tr><th>Impuesto</th><td>{{ doc.tax if doc.tax is not none else '—' }}</td></tr>
+            <tr><th>Total</th><td>{{ doc.total if doc.total is not none else '—' }}</td></tr>
+            <tr><th>Confianza</th><td>{{ '%.0f'|format(doc.confidence * 100) + '%' if doc.confidence is not none else '—' }}</td></tr>
+        </table>
+
+        {% if items %}
+        <h3>Items</h3>
+        <table class="kv-table">
+            <thead><tr><th>Descripcion</th><th>Cant.</th><th>P. unit.</th><th>Monto</th></tr></thead>
+            <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit_price }}</td>
+                    <td>{{ item.amount }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if doc.validation_notes %}
+        <h3>Notas de validacion</h3>
+        <p class="notes">{{ doc.validation_notes }}</p>
+        {% endif %}
+
+        {% if doc.status != 'rolled_back' %}
+        <form action="/documents/{{ doc.id }}/rollback" method="post" onsubmit="return confirm('¿Revertir este documento? Esta accion queda registrada en el historial de auditoria.');">
+            <button type="submit" class="btn btn-danger">Revertir (rollback)</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div>
+        <h3>Historial de auditoria</h3>
+        <ul class="audit-log">
+            {% for entry in audit %}
+            <li>
+                <span class="audit-action">{{ entry.action }}</span>
+                <span class="audit-time">{{ entry.created_at }}</span>
+                {% if entry.detail %}<p class="audit-detail">{{ entry.detail[:300] }}</p>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endblock %}
