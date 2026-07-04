@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Subir documento</h1>
-<p class="muted">Factura o recibo (JPG/PNG). El agente extrae los datos, los valida y decide de forma autonoma si auto-aprobar o marcar para revision.</p>
+<p class="muted">Factura o recibo (JPG/PNG/PDF). El agente extrae los datos, los valida y decide de forma autonoma si auto-aprobar o marcar para revision.</p>
 <form action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
-    <input type="file" name="file" accept="image/png,image/jpeg,image/webp" required>
+    <input type="file" name="file" accept="image/png,image/jpeg,image/webp,application/pdf" required>
     <button type="submit" class="btn btn-primary">Procesar documento</button>
 </form>
 {% endblock %}

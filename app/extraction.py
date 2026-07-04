@@ -7,7 +7,7 @@ import anthropic
 MODEL = "claude-sonnet-4-5"
 
 EXTRACTION_PROMPT = """Eres un sistema de extraccion de datos de facturas y recibos.
-Analiza la imagen adjunta y devuelve UNICAMENTE un JSON valido (sin texto adicional, sin markdown)
+Analiza el documento adjunto y devuelve UNICAMENTE un JSON valido (sin texto adicional, sin markdown)
 con esta forma exacta:
 
 {
@@ -29,23 +29,36 @@ class ExtractionError(Exception):
     pass
 
 
-def _media_type(filename: str) -> str:
+IMAGE_MEDIA_TYPES = {
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "png": "image/png",
+    "webp": "image/webp",
+}
+
+
+def _content_block(file_bytes: bytes, filename: str) -> dict:
     ext = filename.lower().rsplit(".", 1)[-1]
+    b64 = base64.standard_b64encode(file_bytes).decode("utf-8")
+
+    if ext == "pdf":
+        return {
+            "type": "document",
+            "source": {"type": "base64", "media_type": "application/pdf", "data": b64},
+        }
+
     return {
-        "jpg": "image/jpeg",
-        "jpeg": "image/jpeg",
-        "png": "image/png",
-        "webp": "image/webp",
-    }.get(ext, "image/jpeg")
+        "type": "image",
+        "source": {"type": "base64", "media_type": IMAGE_MEDIA_TYPES.get(ext, "image/jpeg"), "data": b64},
+    }
 
 
-def extract_document(image_bytes: bytes, filename: str) -> dict:
+def extract_document(file_bytes: bytes, filename: str) -> dict:
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise ExtractionError("ANTHROPIC_API_KEY no esta configurada en el entorno.")
 
     client = anthropic.Anthropic(api_key=api_key)
-    b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
 
     try:
         response = client.messages.create(
@@ -55,14 +68,7 @@ def extract_document(image_bytes: bytes, filename: str) -> dict:
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": _media_type(filename),
-                                "data": b64,
-                            },
-                        },
+                        _content_block(file_bytes, filename),
                         {"type": "text", "text": EXTRACTION_PROMPT},
                     ],
                 }
