@@ -141,6 +141,6 @@ def rollback_document(doc_id: int):
         session.close()
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
